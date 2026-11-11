@@ -567,20 +567,39 @@ with tab_search:
 
                     for i, c_f in enumerate(cols_f):
                         with c_f:
-                            if i < len(photos) and os.path.exists(photos[i]):
-                                st.markdown(f"<div style='font-size: 12px; font-weight: 700; color: #0284C7; text-align: center; margin-bottom: 6px;'>{labels[i]}</div>", unsafe_allow_html=True)
-                                st.image(photos[i], use_container_width=True)
-                                
-                                with open(photos[i], "rb") as file_bytes:
-                                    fname = os.path.basename(photos[i])
-                                    st.download_button(
-                                        label=f"📥 Descargar Foto {i+1}",
-                                        data=file_bytes,
-                                        file_name=f"{prod['cod_cg1']}_{prod['referencia']}_Foto_{i+1}_{fname}",
-                                        mime="image/jpeg",
-                                        key=f"dl_photo_{i}_{prod['cod_cg1']}",
-                                        use_container_width=True
-                                    )
+                            if i < len(photos):
+                                p_item = photos[i]
+                                is_url = isinstance(p_item, str) and (p_item.startswith("http://") or p_item.startswith("https://"))
+                                is_local = isinstance(p_item, str) and os.path.exists(p_item)
+
+                                if is_url or is_local:
+                                    st.markdown(f"<div style='font-size: 12px; font-weight: 700; color: #0284C7; text-align: center; margin-bottom: 6px;'>{labels[i]}</div>", unsafe_allow_html=True)
+                                    st.image(p_item, use_container_width=True)
+                                    
+                                    if is_url:
+                                        st.link_button(
+                                            label=f"📥 Ver / Descargar Foto {i+1}",
+                                            url=p_item,
+                                            use_container_width=True
+                                        )
+                                    else:
+                                        with open(p_item, "rb") as file_bytes:
+                                            fname = os.path.basename(p_item)
+                                            st.download_button(
+                                                label=f"📥 Descargar Foto {i+1}",
+                                                data=file_bytes,
+                                                file_name=f"{prod['cod_cg1']}_{prod['referencia']}_Foto_{i+1}_{fname}",
+                                                mime="image/jpeg",
+                                                key=f"dl_photo_{i}_{prod['cod_cg1']}",
+                                                use_container_width=True
+                                            )
+                                else:
+                                    render_html("""
+                                    <div class="sfr-box" style="padding: 16px;">
+                                        <div style="font-size: 22px; font-weight: 900; color: #E11D48;">SFR.</div>
+                                        <div style="font-size: 11px; color: #9F1239;">Vista no disponible</div>
+                                    </div>
+                                    """)
                             else:
                                 render_html("""
                                 <div class="sfr-box" style="padding: 16px;">
@@ -644,8 +663,12 @@ with tab_gallery:
             cols_d = st.columns(3)
             for j in range(3):
                 with cols_d[j]:
-                    if j < len(d['photos']) and os.path.exists(d['photos'][j]):
-                        st.image(d['photos'][j], use_container_width=True, caption=f"Foto {j+1}")
+                    if j < len(d['photos']):
+                        p_d = d['photos'][j]
+                        if (isinstance(p_d, str) and (p_d.startswith("http://") or p_d.startswith("https://"))) or os.path.exists(p_d):
+                            st.image(p_d, use_container_width=True, caption=f"Foto {j+1}")
+                        else:
+                            st.markdown("<div class='sfr-box' style='padding: 10px;'><div style='font-size:18px;font-weight:800;color:#E11D48;'>SFR.</div></div>", unsafe_allow_html=True)
                     else:
                         st.markdown("<div class='sfr-box' style='padding: 10px;'><div style='font-size:18px;font-weight:800;color:#E11D48;'>SFR.</div></div>", unsafe_allow_html=True)
 
